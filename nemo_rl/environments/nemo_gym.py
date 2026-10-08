@@ -1402,6 +1402,22 @@ output prompt token ids till seen: {output_item_dict["prompt_token_ids"][: len(s
                         container[key], raw_initial_sources
                     )
 
+        if all("routed_experts" in m for m in nemo_rl_message_log):  # DRAFT r3 repro
+            from nemo_rl.experience._r3_boundary_debug import dump_row
+
+            ends, end = [], 0
+            for message in nemo_rl_message_log:
+                end += len(message["token_ids"])
+                if message["role"] == "assistant":
+                    ends.append(end)
+            # The last generated token of every non-final assistant turn.
+            dump_row(
+                "echo",
+                torch.cat([m["token_ids"] for m in nemo_rl_message_log]),
+                torch.cat([m["routed_experts"] for m in nemo_rl_message_log]),
+                [e - 1 for e in ends[:-1]],
+            )
+
         result = {
             "message_log": nemo_rl_message_log,
             "input_message_log": nemo_rl_message_log[:1],

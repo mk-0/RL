@@ -395,6 +395,13 @@ def attach_routed_experts_to_chat_response_choices(
                 r3_stats["actual_routes"],
                 r3_stats["expected_routes"],
             )
+        from nemo_rl.experience._r3_boundary_debug import dump_call  # DRAFT
+
+        dump_call(
+            final_request_output.prompt_token_ids,
+            generation_details.token_ids,
+            routed_experts,
+        )
         # Base64 envelope instead of .tolist(): nested JSON int lists cost
         # ~1s of CPU per serialize/parse hop at long context lengths and get
         # re-validated at every gym HTTP hop; a single string passes through

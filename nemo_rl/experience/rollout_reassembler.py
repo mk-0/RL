@@ -415,6 +415,16 @@ class RolloutReassembler:
                 routed_experts, failure = self._execute_direct_plan(plan, fetched)
                 if failure is not None:
                     return rejected(f"route_assembly:{failure}", staging_keys)
+                if routed_experts is not None:  # DRAFT r3 boundary repro
+                    from nemo_rl.experience._r3_boundary_debug import dump_row
+
+                    ends, end = [], 0
+                    for _, carry_len, generation_len in row.link_spans:
+                        end += carry_len + generation_len
+                        ends.append(end)
+                    # The last generated token of every non-final call.
+                    boundaries = [e - 1 for e in ends[:-1]]
+                    dump_row("capture", row.token_ids, routed_experts, boundaries)
 
         return FinalizedRollout(
             rollout_id=rollout_id,
